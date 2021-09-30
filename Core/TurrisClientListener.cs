@@ -26,6 +26,7 @@ public class TurrisClientListener : INetEventListener
     {
         byte[] data = reader.GetRemainingBytes();
         BitReader bitReader = new BitReader(data);
+        PacketRoutingType packetRoutingType = bitReader.GetPacketRoutingType();
         packetRouter.Route(bitReader);
         /*
         string output = "";

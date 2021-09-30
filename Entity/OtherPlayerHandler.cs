@@ -11,9 +11,14 @@ public class OtherPlayerHandler : EntityHandler
 
     [SerializeField] private Rigidbody rb;
 
+    public override void Awake()
+    {
+
+    }
+
     public override void Start()
     {
-        
+
     }
 
     public override void Update()

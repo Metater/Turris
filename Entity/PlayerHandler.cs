@@ -24,6 +24,11 @@ public class PlayerHandler : EntityHandler
     private float lastSpeedX = 0;
     private float lastSpeedY = 0;
 
+    public override void Awake()
+    {
+
+    }
+
     public override void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -62,6 +67,7 @@ public class PlayerHandler : EntityHandler
         Camera.main.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
         transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
 
+        // move to enitty manager
         BitWriter bw = new BitWriter();
         bw.Put(0, 2);
         bw.Put((int)((body.transform.position.x * 256f) + 8192), 14);

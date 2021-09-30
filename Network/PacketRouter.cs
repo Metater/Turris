@@ -9,13 +9,13 @@ public class PacketRouter
 
     public PacketRouter()
     {
-        packetHandlers.Add(PacketType.SpawnEntity, new SpawnEntityPacketHandler());
-        packetHandlers.Add(PacketType.UpdateEntity, new UpdateEntityPacketHandler());
+        //packetHandlers.Add(PacketType.SpawnEntity, new SpawnEntityPacketHandler());
+        //packetHandlers.Add(PacketType.UpdateEntity, new UpdateEntityPacketHandler());
     }
 
     public bool Route(BitReader bitReader)
     {
-        PacketType packetType = (PacketType)bitReader.GetByte();
+        PacketType packetType = bitReader.GetPacketType();
         if (packetHandlers.TryGetValue(packetType, out PacketHandler packetHandler))
             packetHandler.Handle(bitReader);
         else

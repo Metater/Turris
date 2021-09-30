@@ -5,22 +5,69 @@ using UnityEngine;
 
 public class EntityManager : MonoBehaviour
 {
-    [SerializeField] private GameObject otherPlayerPrefab;
-    [SerializeField] private Transform playerSpawn;
-    [SerializeField] private Transform playersParent;
+    [SerializeField] private Transform entitiesParent;
+    [SerializeField] private List<GameObject> entityPrefabs = new List<GameObject>();
 
-    private Dictionary<int, OtherPlayerHandler> otherPlayers = new Dictionary<int, OtherPlayerHandler>();
+    // may actually not want to separate these for it just making more sense as a whole,
+    // just do checks for the enttity type
+
+    // not part of entites bc, these are only updated by incomming packets
+    //private Dictionary<int, EntityHandler> otherPlayers = new Dictionary<int, EntityHandler>();
+
+    // these are only moved by the leader player, all other players just receive packets on entity info
+    private Dictionary<int, EntityHandler> entities = new Dictionary<int, EntityHandler>();
 
     private void Start()
     {
 
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
+        // possibly make enitity network manager?? Use packet handlers for now, and world snapshot
 
+        // round robin entity updater
+
+        // send player update, combine with normal snapshot if leader
+        //if (!GameManager.I.IsLeader) return;
+        foreach (KeyValuePair<int, EntityHandler> entity in entities)
+        {
+
+        }
     }
 
+    public void SpawnEntity(ushort entityId, EntityType entityType, Vector3 spawnPosition)
+    {
+        GameObject entityGO = Instantiate(entityPrefabs[(int)entityType], spawnPosition, Quaternion.identity, entitiesParent);
+        EntityHandler entityHandler = entityGO.GetComponent<EntityHandler>(); // double check that it grabs right component
+        entityHandler.Init(entityId, entityType);
+        switch (entityType)
+        {
+            case EntityType.Player:
+                PlayerHandler playerHandler = (PlayerHandler)entityHandler;
+                break;
+            case EntityType.OtherPlayer:
+                OtherPlayerHandler otherPlayerHandler = (OtherPlayerHandler)entityHandler;
+                break;
+            case EntityType.WalkingBox:
+                //WalkingBoxHandler walkingBoxHandler = (WalkingBoxHandler)entityHandler;
+                break;
+            default:
+                return;
+        }
+        entities.Add(entityId, entityHandler);
+    }
+
+    public void DespawnEntity(ushort entityId)
+    {
+        if (entities.TryGetValue(entityId, out EntityHandler entity))
+        {
+            entities.Remove(entityId);
+            Destroy(entity.gameObject);
+        }
+    }
+
+    /*
     public void NewPlayer(BitReader br)
     {
         int id = br.GetInt(8);
@@ -31,7 +78,9 @@ public class EntityManager : MonoBehaviour
         otherPlayer.SetName($"Player {id}");
         otherPlayers.Add(id, otherPlayer);
     }
+    */
 
+    /*
     public void UpdatePlayer(BitReader br)
     {
         int id = br.GetInt(8);
@@ -48,14 +97,5 @@ public class EntityManager : MonoBehaviour
             Debug.Log($"Update Player pos: {pos}, rot: {rot}, pitch: {pitch}");
         }
     }
-
-    public void SpawnEntity()
-    {
-
-    }
-
-    public void UpdateEntity()
-    {
-
-    }
+    */
 }
