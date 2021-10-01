@@ -49,7 +49,7 @@ public class EntityManager : MonoBehaviour
             case EntityType.OtherPlayer:
                 OtherPlayerHandler otherPlayerHandler = (OtherPlayerHandler)entityHandler;
                 break;
-            case EntityType.WalkingBox:
+            case EntityType.BoomBox:
                 //WalkingBoxHandler walkingBoxHandler = (WalkingBoxHandler)entityHandler;
                 break;
             default:

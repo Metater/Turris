@@ -6,53 +6,53 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    // add the stuff from a while ago, the world stuff, towers and tiles
+	// add the stuff from a while ago, the world stuff, towers and tiles
 
 
-    private static GameManager instance;
-    public static GameManager I { get { return instance; } }
+	private static GameManager instance;
+	public static GameManager I { get { return instance; } }
 
-    public TurrisClientListener listener;
-    public NetManager client;
-    public EntityManager entityManager;
+	public TurrisClientListener listener;
+	public NetManager client;
+	public EntityManager entityManager;
 
-    public GameObject player;
+	public GameObject player;
 
-    public bool connected = false;
+	public bool connected = false;
 
-    public bool IsLeader { get; private set; } = false;
+	public bool IsLeader { get; private set; } = false;
 
-    private void Awake()
-    {
-        if (instance != null && instance != this)
-            Destroy(this.gameObject);
-        else
-            instance = this;
-    }
+	private void Awake()
+	{
+		if (instance != null && instance != this)
+			Destroy(this.gameObject);
+		else
+			instance = this;
+	}
 
-    private void Start()
-    {
-        listener = new TurrisClientListener();
-        client = new NetManager(listener);
-        client.Start();
-        client.Connect("75.0.193.55", 7777, "Turris");
-    }
+	private void Start()
+	{
+		listener = new TurrisClientListener();
+		client = new NetManager(listener);
+		client.Start();
+		client.Connect("75.0.193.55", 7777, "Turris");
+	}
 
-    private void Update()
-    {
-        client.PollEvents();
-    }
+	private void Update()
+	{
+		client.PollEvents();
+	}
 
-    public void Send(byte[] data, DeliveryMethod deliveryMethod)
-    {
-        if (!connected) return;
-        client.FirstPeer.Send(data, deliveryMethod);
-    }
+	public void Send(byte[] data, DeliveryMethod deliveryMethod)
+	{
+		if (!connected) return;
+		client.FirstPeer.Send(data, deliveryMethod);
+	}
 
-    public void SetLeader(bool value)
-    {
-        IsLeader = value;
-    }
+	public void SetLeader(bool value)
+	{
+		IsLeader = value;
+	}
 }
 
 
@@ -476,6 +476,6 @@ public enum EntityType
 	WalkingBox
 }
 
-public 
+public
 
 */

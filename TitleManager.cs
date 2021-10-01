@@ -12,6 +12,9 @@ public class TitleManager : MonoBehaviour
     public Animator optionMenuAnim;
     public AudioMixer audioMixer;
     public Slider volumeSlider;
+    public TMP_Text volumeText;
+    public TMP_InputField roomCode, usernameField;
+    
 
     private float speed = 25;
     private bool isOptionMenuOpen = false;
@@ -21,6 +24,8 @@ public class TitleManager : MonoBehaviour
     void Start()
     {
         SetVolumeOnStart();
+        roomCode.characterLimit = 4;
+        usernameField.characterLimit = 16;
     }
 
     // Update is called once per frame
@@ -58,20 +63,20 @@ public class TitleManager : MonoBehaviour
 
     public void volumeControl(float volume)
     {
-        PlayerPrefs.SetFloat("volume", Mathf.Log10(volume) * 20);
+        float decibleRange = Mathf.Log10(volume) * 20;
+        PlayerPrefs.SetFloat("turrisVolume", decibleRange);
         PlayerPrefs.Save();
-        audioMixer.SetFloat("Volume", Mathf.Log10(volume) * 20);
+        audioMixer.SetFloat("turrisVolume", decibleRange);
+        volumeText.text = "Volume: ";
     }
 
 
     private void SetVolumeOnStart()
     {
         float volume = .25f;
-        if (PlayerPrefs.HasKey("volume"))
-            volume = PlayerPrefs.GetFloat("volume");
+        if (PlayerPrefs.HasKey("turrisVolume"))
+            volume = PlayerPrefs.GetFloat("turrisVolume");
         else
-            PlayerPrefs.SetFloat("volume",volume);
-        volumeSlider.value = volume;
-        volumeControl(volume);
+            PlayerPrefs.SetFloat("turrisVolume", volume);
     }
 }

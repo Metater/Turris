@@ -3,7 +3,8 @@ using UnityEngine;
 
 public static class PacketData
 {
-    public static void PutPosition(this BitWriter bitWriter, Vector3 value)
+    #region Position
+    public static void Put(this BitWriter bitWriter, Vector3 value)
     {
         bitWriter.Put((int)((value.x * 256f) + 8192), 14);
         bitWriter.Put((int)(value.y * 256f), 14);
@@ -13,8 +14,21 @@ public static class PacketData
     {
         return new Vector3((bitReader.GetInt(14) - 8192) / 256f, (bitReader.GetInt(14)) / 256f, (bitReader.GetInt(14) - 8192) / 256f);
     }
+    #endregion Position
 
-    public static void PutEntityType(this BitWriter bitWriter, EntityType value)
+    #region Degree
+    public static void PutDegree(this BitWriter bitWriter, float value, float largestValue = 360)
+    {
+        bitWriter.Put((byte)(value * (byte.MaxValue / largestValue)));
+    }
+    public static float GetDegree(this BitReader bitReader, float largestValue = 360)
+    {
+        return bitReader.GetByte() * (largestValue / byte.MaxValue);
+    }
+    #endregion Degree
+
+    #region EntityType
+    public static void Put(this BitWriter bitWriter, EntityType value)
     {
         bitWriter.Put((byte)value);
     }
@@ -22,8 +36,10 @@ public static class PacketData
     {
         return (EntityType)bitReader.GetByte();
     }
+    #endregion EntityType
 
-    public static void PutPacketType(this BitWriter bitWriter, PacketType value)
+    #region PacketType
+    public static void Put(this BitWriter bitWriter, PacketType value)
     {
         bitWriter.Put((byte)value);
     }
@@ -31,8 +47,10 @@ public static class PacketData
     {
         return (PacketType)bitReader.GetPacketRoutingType();
     }
+    #endregion PacketType
 
-    public static void PutPacketRoutingType(this BitWriter bitWriter, PacketRoutingType value)
+    #region PacketRoutingType
+    public static void Put(this BitWriter bitWriter, PacketRoutingType value)
     {
         bitWriter.Put((byte)value);
     }
@@ -40,4 +58,5 @@ public static class PacketData
     {
         return (PacketRoutingType)bitReader.GetByte();
     }
+    #endregion PacketRoutingType
 }
