@@ -1,4 +1,5 @@
 using BitManipulation;
+using LiteNetLib;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -28,18 +29,20 @@ public class EntityManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        SendFullSnapshot();
+        SendEntitySnapshot();
         nextSequenceNumber++;
     }
 
-    private void SendFullSnapshot()
+    private void SendEntitySnapshot()
     {
         if (controlledEntities.Count == 0) return;
-        FullSnapshot fullSnapshot = new FullSnapshot(nextSequenceNumber);
+        EntitySnapshotPacket entitySnapshotPacket = new EntitySnapshotPacket(nextSequenceNumber);
         foreach (ControlledEntityHandler controlledEntity in controlledEntities)
-        {
-            fullSnapshot.
-        }
+            entitySnapshotPacket.AddSnapshot(controlledEntity.GetEntitySnapshot());
+        BitWriter bitWriter = new BitWriter(10, 10);
+        bitWriter.Put(PacketRoutingType.BroadcastButToSender);
+        entitySnapshotPacket.WriteOut(bitWriter);
+        GameManager.I.Send(bitWriter.Assemble(), DeliveryMethod.Sequenced);
     }
 
     public void SpawnUncontrolledEntity(ushort entityId, EntityType entityType, Vector3 spawnPosition)
@@ -50,9 +53,6 @@ public class EntityManager : MonoBehaviour
         switch (entityType)
         {
             case EntityType.Player:
-                //PlayerHandler playerHandler = (PlayerHandler)entityHandler;
-                break;
-            case EntityType.OtherPlayer:
                 OtherPlayerHandler otherPlayerHandler = (OtherPlayerHandler)entityHandler;
                 break;
             case EntityType.BoomBox:
@@ -64,12 +64,6 @@ public class EntityManager : MonoBehaviour
         uncontrolledEntities.Add(entityId, entityHandler);
     }
 
-    public void HandleUncontrolledEntitySnapshot(EntitySnapshot snapshot)
-    {
-        if (uncontrolledEntities.TryGetValue(snapshot.entityId, out UncontrolledEntityHandler entity))
-            entity.HandleSnapshot(snapshot);
-    }
-
     public void DespawnUncontrolledEntity(ushort entityId)
     {
         if (uncontrolledEntities.TryGetValue(entityId, out UncontrolledEntityHandler entity))
@@ -77,5 +71,19 @@ public class EntityManager : MonoBehaviour
             uncontrolledEntities.Remove(entityId);
             entity.DestroyEntity();
         }
+    }
+
+    public void HandleEntitySnapshots(List<EntitySnapshot> entitySnapshots)
+    {
+        foreach (EntitySnapshot snapshot in entitySnapshots)
+            if (uncontrolledEntities.TryGetValue(snapshot.entityId, out UncontrolledEntityHandler entity))
+                entity.HandleSnapshot(snapshot);
+    }
+
+    public EntityType GetEntityType(ushort entityId)
+    {
+        if (uncontrolledEntities.TryGetValue(entityId, out UncontrolledEntityHandler entity))
+            return entity.EntityType;
+        return EntityType.None;
     }
 }

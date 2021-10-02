@@ -1,7 +1,7 @@
 ﻿public enum EntityType : byte
 {
+    None,
     Player,
-    OtherPlayer,
     BoomBox
 }
 

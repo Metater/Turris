@@ -13,6 +13,20 @@ public abstract class EntitySnapshot : IWritable
 	public ushort entityId;
 
 	public abstract void WriteOut(BitWriter bitWriter);
+
+	public static EntitySnapshot GetEntitySnapshot(uint sequenceNumber, BitReader bitReader, Func<ushort, EntityType> getEntityType)
+    {
+		ushort entityId = bitReader.GetUShort();
+		switch (getEntityType(entityId))
+        {
+			case EntityType.Player:
+				return new PlayerSnapshot(sequenceNumber, entityId, bitReader);
+			//case EntityType.BoomBox:
+				//break;
+			default:
+				return null;
+        }
+    }
 }
 
 public class PlayerSnapshot : EntitySnapshot
@@ -30,12 +44,12 @@ public class PlayerSnapshot : EntitySnapshot
 		this.pitch = pitch;
     }
 
-	public PlayerSnapshot(uint sequenceNumber, BitReader bitReader)
+	public PlayerSnapshot(uint sequenceNumber, ushort entityId, BitReader bitReader)
 	{
 		this.sequenceNumber = sequenceNumber;
 		entityType = EntityType.Player;
+		this.entityId = entityId;
 
-		entityId = bitReader.GetUShort();
 		position = bitReader.GetPosition();
 		rotation = bitReader.GetDegree();
 		pitch = bitReader.GetDegree(180f) - 90f;
