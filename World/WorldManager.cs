@@ -4,5 +4,6 @@ using UnityEngine;
 
 public class WorldManager : MonoBehaviour
 {
+    public Grid grid;
     public World world = new World();
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class OtherPlayerHandler : EntityHandler
+public class OtherPlayerHandler : UncontrolledEntityHandler
 {
     [SerializeField] private GameObject body;
     [SerializeField] private GameObject hands;
@@ -11,17 +11,17 @@ public class OtherPlayerHandler : EntityHandler
 
     [SerializeField] private Rigidbody rb;
 
-    public override void Awake()
+    public void Awake()
     {
 
     }
 
-    public override void Start()
+    public void Start()
     {
 
     }
 
-    public override void Update()
+    public void Update()
     {
         AimTextAtPlayer();
     }
@@ -31,20 +31,18 @@ public class OtherPlayerHandler : EntityHandler
         playerName.text = name;
     }
 
-    public void UpdatePlayer(Vector3 pos, float rot, float pitch)
+    public override void HandleSnapshot(EntitySnapshot s)
     {
-        rb.MovePosition(pos); // still need lerp
-        rb.MoveRotation(Quaternion.Euler(new Vector3(0, rot, 0)));
-        hands.transform.localRotation = Quaternion.Euler(pitch, 0, 0);
-    }
-
-    public void DestroyPlayer()
-    {
-        Destroy(gameObject);
+        // DONOW: ADD LERP
+        PlayerSnapshot snapshot = (PlayerSnapshot)s;
+        rb.MovePosition(snapshot.position);
+        rb.MoveRotation(Quaternion.Euler(0, snapshot.rotation, 0));
+        hands.transform.localRotation = Quaternion.Euler(snapshot.pitch, 0, 0);
     }
 
     private void AimTextAtPlayer()
     {
+        if (GameManager.I.player == null) return;
         Vector3 playerPos = GameManager.I.player.transform.position;
         var delta = playerPos - transform.position;
         var angle = Mathf.Atan2(delta.x, delta.z) * Mathf.Rad2Deg;

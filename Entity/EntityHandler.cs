@@ -2,34 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EntityHandler : MonoBehaviour
+public abstract class EntityHandler : MonoBehaviour
 {
-    public ushort entityId { get; private set; }
-    public EntityType entityType { get; private set; }
+    public ushort EntityId { get; private set; }
+    public EntityType EntityType { get; private set; }
+    public bool IsControlledEntity { get; private set; }
 
-    public void Init(ushort entityId, EntityType entityType)
+    public void Init(ushort entityId, EntityType entityType, bool isControlledEntity = false)
     {
-        this.entityId = entityId;
-        this.entityType = entityType;
+        EntityId = entityId;
+        EntityType = entityType;
+        IsControlledEntity = isControlledEntity;
     }
 
-    public virtual void Awake()
+    public void DestroyEntity()
     {
-
-    }
-
-    public virtual void Start()
-    {
-
-    }
-
-    public virtual void Update()
-    {
-
-    }
-
-    public virtual void FixedUpdate()
-    {
-
+        Destroy(gameObject);
     }
 }

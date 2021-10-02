@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerHandler : EntityHandler
+public class PlayerHandler : ControlledEntityHandler
 {
     [SerializeField] private CharacterController characterController;
 
@@ -24,18 +24,23 @@ public class PlayerHandler : EntityHandler
     private float lastSpeedX = 0;
     private float lastSpeedY = 0;
 
-    public override void Awake()
+    public override EntitySnapshot GetEntitySnapshot()
+    {
+        return new PlayerSnapshot(EntityId, transform.position, transform.eulerAngles.y, rotationX);
+    }
+
+    public void Awake()
     {
 
     }
 
-    public override void Start()
+    public void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 
-    public override void Update()
+    public void Update()
     {
         Vector3 forward = transform.TransformDirection(Vector3.forward);
         Vector3 right = transform.TransformDirection(Vector3.right);
@@ -66,15 +71,5 @@ public class PlayerHandler : EntityHandler
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
         Camera.main.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
         transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
-
-        // move to enitty manager
-        BitWriter bw = new BitWriter();
-        bw.Put(0, 2);
-        bw.Put((int)((body.transform.position.x * 256f) + 8192), 14);
-        bw.Put((int)((body.transform.position.y * 256f)), 14);
-        bw.Put((int)((body.transform.position.z * 256f) + 8192), 14);
-        bw.Put((byte)(body.transform.localEulerAngles.y / 1.41176470588f));
-        bw.Put((byte)(rotationX / 1.41176470588f)); // representing more than you need
-        GameManager.I.Send(bw.Assemble(), DeliveryMethod.Sequenced);
     }
 }

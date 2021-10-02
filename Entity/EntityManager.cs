@@ -6,6 +6,7 @@ using UnityEngine;
 public class EntityManager : MonoBehaviour
 {
     [SerializeField] private Transform entitiesParent;
+    [SerializeField] private List<GameObject> controlledEntityPrefabs = new List<GameObject>();
     [SerializeField] private List<GameObject> entityPrefabs = new List<GameObject>();
 
     // may actually not want to separate these for it just making more sense as a whole,
@@ -15,7 +16,10 @@ public class EntityManager : MonoBehaviour
     //private Dictionary<int, EntityHandler> otherPlayers = new Dictionary<int, EntityHandler>();
 
     // these are only moved by the leader player, all other players just receive packets on entity info
-    private Dictionary<int, EntityHandler> entities = new Dictionary<int, EntityHandler>();
+    private List<ControlledEntityHandler> controlledEntities = new List<ControlledEntityHandler>();
+    private Dictionary<int, UncontrolledEntityHandler> uncontrolledEntities = new Dictionary<int, UncontrolledEntityHandler>();
+
+    private uint nextSequenceNumber = 0;
 
     private void Start()
     {
@@ -24,27 +28,29 @@ public class EntityManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // possibly make enitity network manager?? Use packet handlers for now, and world snapshot
+        SendFullSnapshot();
+        nextSequenceNumber++;
+    }
 
-        // round robin entity updater
-
-        // send player update, combine with normal snapshot if leader
-        //if (!GameManager.I.IsLeader) return;
-        foreach (KeyValuePair<int, EntityHandler> entity in entities)
+    private void SendFullSnapshot()
+    {
+        if (controlledEntities.Count == 0) return;
+        FullSnapshot fullSnapshot = new FullSnapshot(nextSequenceNumber);
+        foreach (ControlledEntityHandler controlledEntity in controlledEntities)
         {
-
+            fullSnapshot.
         }
     }
 
-    public void SpawnEntity(ushort entityId, EntityType entityType, Vector3 spawnPosition)
+    public void SpawnUncontrolledEntity(ushort entityId, EntityType entityType, Vector3 spawnPosition)
     {
         GameObject entityGO = Instantiate(entityPrefabs[(int)entityType], spawnPosition, Quaternion.identity, entitiesParent);
-        EntityHandler entityHandler = entityGO.GetComponent<EntityHandler>(); // double check that it grabs right component
+        UncontrolledEntityHandler entityHandler = entityGO.GetComponent<UncontrolledEntityHandler>(); // double check that it grabs right component
         entityHandler.Init(entityId, entityType);
         switch (entityType)
         {
             case EntityType.Player:
-                PlayerHandler playerHandler = (PlayerHandler)entityHandler;
+                //PlayerHandler playerHandler = (PlayerHandler)entityHandler;
                 break;
             case EntityType.OtherPlayer:
                 OtherPlayerHandler otherPlayerHandler = (OtherPlayerHandler)entityHandler;
@@ -55,47 +61,21 @@ public class EntityManager : MonoBehaviour
             default:
                 return;
         }
-        entities.Add(entityId, entityHandler);
+        uncontrolledEntities.Add(entityId, entityHandler);
     }
 
-    public void DespawnEntity(ushort entityId)
+    public void HandleUncontrolledEntitySnapshot(EntitySnapshot snapshot)
     {
-        if (entities.TryGetValue(entityId, out EntityHandler entity))
+        if (uncontrolledEntities.TryGetValue(snapshot.entityId, out UncontrolledEntityHandler entity))
+            entity.HandleSnapshot(snapshot);
+    }
+
+    public void DespawnUncontrolledEntity(ushort entityId)
+    {
+        if (uncontrolledEntities.TryGetValue(entityId, out UncontrolledEntityHandler entity))
         {
-            entities.Remove(entityId);
-            Destroy(entity.gameObject);
+            uncontrolledEntities.Remove(entityId);
+            entity.DestroyEntity();
         }
     }
-
-    /*
-    public void NewPlayer(BitReader br)
-    {
-        int id = br.GetInt(8);
-        Debug.Log("New Player: " + id);
-        if (otherPlayers.ContainsKey(id)) return; // the thing that cuases this is bad practice only send new ones on server
-        GameObject otherPlayerGO = Instantiate(otherPlayerPrefab, playerSpawn.position, Quaternion.identity, playersParent);
-        OtherPlayerHandler otherPlayer = otherPlayerGO.GetComponent<OtherPlayerHandler>();
-        otherPlayer.SetName($"Player {id}");
-        otherPlayers.Add(id, otherPlayer);
-    }
-    */
-
-    /*
-    public void UpdatePlayer(BitReader br)
-    {
-        int id = br.GetInt(8);
-        Debug.Log("Update player id: " + id);
-        if (otherPlayers.TryGetValue(id, out OtherPlayerHandler otherPlayer))
-        {
-            float xPos = (br.GetInt(14) - 8192) / 256f;
-            float yPos = (br.GetInt(14)) / 256f;
-            float zPos = (br.GetInt(14) - 8192) / 256f;
-            float rot = (br.GetInt(8) * 1.41176470588f);
-            float pitch = (br.GetInt(8) * 1.41176470588f);
-            Vector3 pos = new Vector3(xPos, yPos, zPos);
-            otherPlayer.UpdatePlayer(pos, rot, pitch);
-            Debug.Log($"Update Player pos: {pos}, rot: {rot}, pitch: {pitch}");
-        }
-    }
-    */
 }

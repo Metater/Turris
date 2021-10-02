@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
 	public TurrisClientListener listener;
 	public NetManager client;
 	public EntityManager entityManager;
+	public WorldManager worldManager;
 
 	public GameObject player;
 

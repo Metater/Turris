@@ -8,6 +8,12 @@
 // Events, Spawn, Despawn, are reliable-ordered; Snapshots are sequenced
 public enum PacketType : byte
 {
+    // Sent by a client server saying to a client to spawn their player in
+    // Received by one client
+    ClientServerMessage,
+    // Sent by a client server saying to a client to spawn their player in
+    // Received by one client
+    SpawnPlayer,
     // Sent by a client server saying any new entity spawned in
     // Received by everyone but sender, true clients only
     SpawnEntity,
@@ -34,6 +40,7 @@ public enum PacketRoutingType : byte
 {
     BroadcastButToSender = 0,
     SendToClientServer = 1,
+    SendToClient = 2,
 }
 
 // Comes from a client decision
@@ -48,4 +55,18 @@ public enum EntityEventInType : byte
 {
     Hurt,
     Die
+}
+
+public enum WorldTileType : byte
+{
+    Empty,
+    Wall,
+    CannonTower,
+    BatteryTower,
+    LaserTower
+}
+
+public enum TileEventInType : byte
+{
+
 }
