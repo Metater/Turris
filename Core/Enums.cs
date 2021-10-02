@@ -2,18 +2,18 @@
 {
     None,
     Player,
-    BoomBox
+    BoomBox,
+    CannonTower,
 }
 
-// Events, Spawn, Despawn, are reliable-ordered; Snapshots are sequenced
+// need a way to say client left to client server
+
+// Events, Spawn, Despawn, GameInfo are reliable-ordered; Snapshots are sequenced
 public enum PacketType : byte
 {
-    // Sent by a client server saying to a client to spawn their player in
+    // Sent by a client server saying to a client to spawn their player in and weather or not they are the leader
     // Received by one client
-    ClientServerMessage,
-    // Sent by a client server saying to a client to spawn their player in
-    // Received by one client
-    SpawnPlayer,
+    GameInfo,
     // Sent by a client server saying any new entity spawned in
     // Received by everyone but sender, true clients only
     SpawnEntity,
@@ -69,4 +69,11 @@ public enum WorldTileType : byte
 public enum TileEventInType : byte
 {
 
+}
+
+public enum GameInfoType : byte
+{
+    SelfJoin,
+    Join,
+    Leave
 }

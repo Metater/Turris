@@ -6,9 +6,12 @@ using UnityEngine;
 
 public class EntityManager : MonoBehaviour
 {
-    [SerializeField] private Transform entitiesParent;
+    [SerializeField] private Transform controlledEntitiesParent;
+    [SerializeField] private Transform uncontrolledEntitiesParent;
     [SerializeField] private List<GameObject> controlledEntityPrefabs = new List<GameObject>();
-    [SerializeField] private List<GameObject> entityPrefabs = new List<GameObject>();
+    [SerializeField] private List<GameObject> uncontrolledEntityPrefabs = new List<GameObject>();
+
+    [SerializeField] private ControlledEntityHandler player;
 
     // may actually not want to separate these for it just making more sense as a whole,
     // just do checks for the enttity type
@@ -20,6 +23,7 @@ public class EntityManager : MonoBehaviour
     private List<ControlledEntityHandler> controlledEntities = new List<ControlledEntityHandler>();
     private Dictionary<int, UncontrolledEntityHandler> uncontrolledEntities = new Dictionary<int, UncontrolledEntityHandler>();
 
+    private ushort nextEntityId = 0;
     private uint nextSequenceNumber = 0;
 
     private void Start()
@@ -29,11 +33,57 @@ public class EntityManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        SendEntitySnapshot();
+        SendControlledEntitySnapshot();
         nextSequenceNumber++;
     }
 
-    private void SendEntitySnapshot()
+    #region ControlledEntityMethods
+    // Client server only!
+    public ushort SpawnServerControlledEntity(EntityType entityType, Vector3 spawnPosition)
+    {
+        ushort entityId = nextEntityId;
+        nextEntityId++;
+        ControlledEntityHandler controlledEntityHandler;
+        if (entityType == EntityType.Player)
+        {
+            player.gameObject.transform.position = spawnPosition;
+            controlledEntityHandler = player.GetComponentInParent<ControlledEntityHandler>();
+            controlledEntityHandler.enabled = true;
+            controlledEntityHandler.Init(entityId, entityType, true);
+        }
+        else
+        {
+            GameObject entityGO = Instantiate(controlledEntityPrefabs[(int)entityType], spawnPosition, Quaternion.identity, controlledEntitiesParent);
+            controlledEntityHandler = entityGO.GetComponent<ControlledEntityHandler>();
+            controlledEntityHandler.Init(entityId, entityType, true);
+            switch (entityType)
+            {
+                case EntityType.BoomBox:
+                    break;
+                case EntityType.CannonTower:
+                    break;
+            }
+        }
+
+        controlledEntities.Add(controlledEntityHandler);
+
+        SpawnEntityPacket spawnEntityPacket = new SpawnEntityPacket(entityId, entityType, spawnPosition);
+        BitWriter bitWriter = new BitWriter();
+        bitWriter.Put(PacketRoutingType.BroadcastButToSender);
+        spawnEntityPacket.WriteOut(bitWriter);
+        GameManager.I.Send(bitWriter.Assemble(), DeliveryMethod.ReliableOrdered);
+        return entityId;
+    }
+
+    public void SpawnClientControlledPlayer(ushort entityId, Vector3 spawnPosition)
+    {
+        GameObject entityGO = Instantiate(controlledEntityPrefabs[(int)EntityType.Player], spawnPosition, Quaternion.identity, controlledEntitiesParent);
+        PlayerHandler playerHandler = entityGO.GetComponent<PlayerHandler>();
+        playerHandler.Init(entityId, EntityType.Player, true);
+        controlledEntities.Add(playerHandler);
+    }
+
+    private void SendControlledEntitySnapshot()
     {
         if (controlledEntities.Count == 0) return;
         EntitySnapshotPacket entitySnapshotPacket = new EntitySnapshotPacket(nextSequenceNumber);
@@ -44,16 +94,27 @@ public class EntityManager : MonoBehaviour
         entitySnapshotPacket.WriteOut(bitWriter);
         GameManager.I.Send(bitWriter.Assemble(), DeliveryMethod.Sequenced);
     }
+    #endregion ControlledEntityMethods
+
+    #region UncontrolledEntityMethods
+    // Client server only! Saves client server having to send and receive a spawn player command that it previously sent.
+    public ushort SpawnServerUncontrolledPlayer(Vector3 spawnPosition)
+    {
+        ushort entityId = nextEntityId;
+        nextEntityId++;
+        SpawnUncontrolledEntity(entityId, EntityType.Player, spawnPosition);
+        return entityId;
+    }
 
     public void SpawnUncontrolledEntity(ushort entityId, EntityType entityType, Vector3 spawnPosition)
     {
-        GameObject entityGO = Instantiate(entityPrefabs[(int)entityType], spawnPosition, Quaternion.identity, entitiesParent);
-        UncontrolledEntityHandler entityHandler = entityGO.GetComponent<UncontrolledEntityHandler>(); // double check that it grabs right component
-        entityHandler.Init(entityId, entityType);
+        GameObject entityGO = Instantiate(uncontrolledEntityPrefabs[(int)entityType], spawnPosition, Quaternion.identity, uncontrolledEntitiesParent);
+        UncontrolledEntityHandler uncontrolledEntityHandler = entityGO.GetComponent<UncontrolledEntityHandler>();
+        uncontrolledEntityHandler.Init(entityId, entityType);
         switch (entityType)
         {
             case EntityType.Player:
-                OtherPlayerHandler otherPlayerHandler = (OtherPlayerHandler)entityHandler;
+                OtherPlayerHandler otherPlayerHandler = (OtherPlayerHandler)uncontrolledEntityHandler;
                 break;
             case EntityType.BoomBox:
                 //WalkingBoxHandler walkingBoxHandler = (WalkingBoxHandler)entityHandler;
@@ -61,7 +122,7 @@ public class EntityManager : MonoBehaviour
             default:
                 return;
         }
-        uncontrolledEntities.Add(entityId, entityHandler);
+        uncontrolledEntities.Add(entityId, uncontrolledEntityHandler);
     }
 
     public void DespawnUncontrolledEntity(ushort entityId)
@@ -86,4 +147,5 @@ public class EntityManager : MonoBehaviour
             return entity.EntityType;
         return EntityType.None;
     }
+    #endregion UncontrolledEntityMethods
 }

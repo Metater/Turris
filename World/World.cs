@@ -6,8 +6,6 @@ public class World
 {
     public const int TilemapRadius = 10;
 
-    public Vector2Int corePos = new Vector2Int(TilemapRadius, TilemapRadius);
-
     private WorldTile[,] tilemap = new WorldTile[(TilemapRadius * 2) + 1, (TilemapRadius * 2) + 1];
 
     public World()

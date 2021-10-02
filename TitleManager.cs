@@ -4,6 +4,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
 
 public class TitleManager : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class TitleManager : MonoBehaviour
     public Slider volumeSlider;
     public TMP_Text volumeText;
     public TMP_InputField roomCode, usernameField;
-    
+
 
     private float speed = 25;
     private bool isOptionMenuOpen = false;
@@ -78,5 +79,28 @@ public class TitleManager : MonoBehaviour
             volume = PlayerPrefs.GetFloat("turrisVolume");
         else
             PlayerPrefs.SetFloat("turrisVolume", volume);
+    }
+
+    public void CreateGameButton()
+    {
+
+        if (!string.IsNullOrWhiteSpace(usernameField.text))
+        {
+            PlayerPrefs.SetString("name", usernameField.text);
+            PlayerPrefs.SetInt("shouldCreateGame", 1);
+            PlayerPrefs.Save();
+            SceneManager.LoadScene(1, LoadSceneMode.Single);
+        }
+    }
+
+    public void JoinGameButton()
+    {
+        if (int.TryParse(roomCode.text, out int joinCode) && joinCode > 999)
+        {
+            PlayerPrefs.SetInt("joinCode", joinCode);
+            PlayerPrefs.SetInt("shouldCreateGame", 0);
+            PlayerPrefs.Save();
+            SceneManager.LoadScene(1, LoadSceneMode.Single);
+        }
     }
 }

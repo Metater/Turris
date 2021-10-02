@@ -59,4 +59,15 @@ public static class PacketData
         return (PacketRoutingType)bitReader.GetByte();
     }
     #endregion PacketRoutingType
+
+    #region GameInfoType
+    public static void Put(this BitWriter bitWriter, GameInfoType value)
+    {
+        bitWriter.Put((byte)value);
+    }
+    public static GameInfoType GetGameInfoType(this BitReader bitReader)
+    {
+        return (GameInfoType)bitReader.GetByte();
+    }
+    #endregion GameInfoType
 }

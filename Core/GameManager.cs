@@ -3,6 +3,7 @@ using LiteNetLib;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -16,6 +17,8 @@ public class GameManager : MonoBehaviour
 	public NetManager client;
 	public EntityManager entityManager;
 	public WorldManager worldManager;
+
+	public Transform playerSpawnPosition;
 
 	public GameObject player;
 
@@ -36,7 +39,23 @@ public class GameManager : MonoBehaviour
 		listener = new TurrisClientListener();
 		client = new NetManager(listener);
 		client.Start();
-		client.Connect("75.0.193.55", 7777, "Turris");
+		//client.Connect("75.0.193.55", 7777, "Turris");
+		//string ip = PlayerPrefs.GetString("ip", "localhost");
+		string ip = PlayerPrefs.GetString("ip", "75.0.193.55");
+		int port = PlayerPrefs.GetInt("port", 11000);
+		//int port = PlayerPrefs.GetInt("port", 7777);
+		string name = PlayerPrefs.GetString("name", "Unnamed");
+		bool shouldCreateGame = PlayerPrefs.GetInt("shouldCreateGame", 0) == 1;
+		if (shouldCreateGame)
+        {
+			client.Connect(ip, port, name);
+		}
+		else
+        {
+			int joinCode = PlayerPrefs.GetInt("joinCode", 0);
+			if (joinCode == 0) SceneManager.LoadScene(0, LoadSceneMode.Single);
+			client.Connect(ip, port, name);
+		}
 	}
 
 	private void Update()
