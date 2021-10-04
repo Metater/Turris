@@ -13,13 +13,6 @@ public class EntityManager : MonoBehaviour
 
     [SerializeField] private ControlledEntityHandler player;
 
-    // may actually not want to separate these for it just making more sense as a whole,
-    // just do checks for the enttity type
-
-    // not part of entites bc, these are only updated by incomming packets
-    //private Dictionary<int, EntityHandler> otherPlayers = new Dictionary<int, EntityHandler>();
-
-    // these are only moved by the leader player, all other players just receive packets on entity info
     private List<ControlledEntityHandler> controlledEntities = new List<ControlledEntityHandler>();
     private Dictionary<int, UncontrolledEntityHandler> uncontrolledEntities = new Dictionary<int, UncontrolledEntityHandler>();
 
