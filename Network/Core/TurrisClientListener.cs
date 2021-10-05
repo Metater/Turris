@@ -63,7 +63,7 @@ public class TurrisClientListener : INetEventListener
     public void OnPeerConnected(NetPeer peer)
     {
         GameManager.I.connected = true;
-        GameManager.I.entityManager.SpawnServerControlledEntity(EntityType.Player, GameManager.I.playerSpawnPosition.position);
+        //GameManager.I.entityManager.SpawnServerControlledEntity(EntityType.Player, GameManager.I.playerSpawnPosition.position);
     }
     public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
     {
