@@ -7,13 +7,15 @@ public class PlayerNavMesh : MonoBehaviour
 {
     private NavMeshAgent navMeshAgent;
 
-    public Transform point;
-
+    [SerializeField] public Transform point;
+    
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
          navMeshAgent = GetComponent<NavMeshAgent>();
+        point = GetComponentInParent<Transform>();
+        
     }
 
     // Update is called once per frame
